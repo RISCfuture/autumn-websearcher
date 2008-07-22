@@ -1,0 +1,21 @@
+= WebSearcher: An Autumn Leaf
+
+<b>Version 1.0 (Jul 15, 2008)</b>
+
+Author::    Tim Morgan (mailto:riscfuture@gmail.com)
+Copyright:: Copyright (c)2008 Tim Morgan
+License::   Distributed under the same terms as Ruby.
+
+Provides a collection of useful commands that leverage Google's web searching
+for IRC.
+
+== Usage
+
+!google [term]:: Displays the title and URL of the first search result for
+                 _term_. This command is aliased as "!g".
+!image [term]:: Displays the URL of the first image search result for _term_.
+                This command is aliased as "!i".
+!news:: Displays one of the top five stories on Google News. This command is
+        aliased as "!n".
+!news [topic]:: Displays one of the top five stories on Google News about a
+                topic.
