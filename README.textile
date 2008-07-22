@@ -11,7 +11,7 @@ for IRC.
 
 h2. Usage
 
-| !google [term] | Displays the title and URL of the first search result for _term_. This command is aliased as "!g".
-| !image [term] | Displays the URL of the first image search result for _term_. This command is aliased as "!i".
-| !news:: Displays one of the top five stories on Google News. This command is aliased as "!n".
-| !news [topic] | Displays one of the top five stories on Google News about a topic.
+| !google [term] | Displays the title and URL of the first search result for _term_. This command is aliased as "!g". |
+| !image [term] | Displays the URL of the first image search result for _term_. This command is aliased as "!i". |
+| !news:: Displays one of the top five stories on Google News. This command is aliased as "!n". |
+| !news [topic] | Displays one of the top five stories on Google News about a topic. |
