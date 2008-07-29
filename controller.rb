@@ -32,7 +32,7 @@ class Controller < Autumn::Leaf
      if not title_array.empty? then
        var :title => title_array.first
        if result_url.size > 30 then
-         var :url => (ShortURL.shorten(result_url) rescue result_url)
+         var :url => (ShortURL.shorten(result_url, :lns) rescue result_url)
        else
          var :url => result_url
        end
@@ -74,7 +74,7 @@ class Controller < Autumn::Leaf
     var :title => story.elements['title'].text
     result_url = story.elements['link'].attributes['href']
     if result_url.size > 30 then
-      var :url => (ShortURL.shorten(result_url) rescue result_url)
+      var :url => (ShortURL.shorten(result_url, :lns) rescue result_url)
     else
       var :url => result_url
     end
