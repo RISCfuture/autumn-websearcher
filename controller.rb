@@ -3,10 +3,15 @@ require 'net/http'
 require 'rexml/document'
 require 'facets/random'
 require 'shorturl'
+require 'htmlentities'
 
 # Controller for the WebSearcher leaf.
 
 class Controller < Autumn::Leaf
+  
+  def will_start_up # :nodoc:
+    @coder = HTMLEntities.new
+  end
   
   # Typing "!about" displays some basic information about this leaf.
   
@@ -30,7 +35,7 @@ class Controller < Autumn::Leaf
      response = Net::HTTP.get_response(URI.parse(result_url))
      title_array = response.body.scan(/<title>(.+?)<\/title>/).flatten
      if not title_array.empty? then
-       var :title => title_array.first
+       var :title => @coder.decode(title_array.first)
        if result_url.size > 30 then
          var :url => (ShortURL.shorten(result_url, :lns) rescue result_url)
        else
@@ -71,7 +76,7 @@ class Controller < Autumn::Leaf
     stories.slice! 0, 5
     story = stories.at_rand
     return "No news stories found." unless story
-    var :title => story.elements['title'].text
+    var :title => @coder.decode(story.elements['title'].text)
     result_url = story.elements['link'].attributes['href']
     if result_url.size > 30 then
       var :url => (ShortURL.shorten(result_url, :lns) rescue result_url)
