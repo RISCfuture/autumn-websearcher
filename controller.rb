@@ -57,7 +57,7 @@ class Controller < Autumn::Leaf
 
     search_url = URI.parse("http://images.google.com/images?hl=en&q=#{URI.escape msg}&btnG=Search+Images&gbv=2")
     response = Net::HTTP.get_response(search_url)
-    urls = response.body.scan(/dyn\.Img\(".*?",".*?",".*?","(.+?)","\d*","\d*",".*?",".*?",".*?",".*?",".*?",".*?",".*?",".*?",".*?",".*?",\[.*?\]\)/).flatten
+    urls = response.body.scan(/imgurl\\x3d(.+?)\\x26/).flatten
    if urls.empty? then return "No images found."
    else return urls.first end
   end
