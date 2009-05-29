@@ -19,3 +19,7 @@ for IRC.
         aliased as "!n".
 !news [topic]:: Displays one of the top five stories on Google News about a
                 topic.
+
+== Configuration options
++announce_webpage_titles+:: If true, announces the title of web pages whose
+                            URL's are pasted into the channel.

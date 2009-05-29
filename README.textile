@@ -15,3 +15,7 @@ h2. Usage
 | !image [term] | Displays the URL of the first image search result for _term_. This command is aliased as "!i". |
 | !news | Displays one of the top five stories on Google News. This command is aliased as "!n". |
 | !news [topic] | Displays one of the top five stories on Google News about a topic. |
+
+h2. Configuration options
+
+| @announce_webpage_titles@ | If true, announces the title of web pages whose URL's are pasted into the channel. |

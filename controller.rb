@@ -85,4 +85,20 @@ class Controller < Autumn::Leaf
     end
   end
   alias_command :news, :n
+  
+  # Invoked when a message is sent to a channel the leaf is a member of (even
+  # if that message was a valid command). If the message is a link, loads the
+  # link's title and prints it to the channel.
+  
+  def did_receive_channel_message(stem, sender, channel, msg)
+    return unless options[:announce_webpage_titles]
+    if msg =~ /^http:\/\// then
+      html = Net::HTTP.get(URI.parse(msg)) rescue nil
+      if html then
+        page = Hpricot(html)
+        title = (page/'head/title').try(:inner_html)
+        stem.message title if title
+      end
+    end
+  end
 end
