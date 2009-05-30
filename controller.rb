@@ -1,17 +1,6 @@
-require 'uri'
-require 'net/http'
-require 'rexml/document'
-require 'facets/random'
-require 'shorturl'
-require 'htmlentities'
-
 # Controller for the WebSearcher leaf.
 
 class Controller < Autumn::Leaf
-  
-  def will_start_up # :nodoc:
-    @coder = HTMLEntities.new
-  end
   
   # Typing "!about" displays some basic information about this leaf.
   
@@ -26,23 +15,22 @@ class Controller < Autumn::Leaf
       render :google_help
       return
     end
-
-   search_url = URI.parse("http://www.google.com/search?hl=en&q=#{URI.escape msg}&btnI=I%27m+Feeling+Lucky") 
-   response = Net::HTTP.get_response(search_url)
-   result_url = response.header['Location']
-   var :url => result_url
-   if result_url then
-     response = Net::HTTP.get_response(URI.parse(result_url))
-     title_array = response.body.scan(/<title>(.+?)<\/title>/).flatten
-     if not title_array.empty? then
-       var :title => @coder.decode(title_array.first)
-       if result_url.size > 30 then
-         var :url => (ShortURL.shorten(result_url, :lns) rescue result_url)
-       else
-         var :url => result_url
-       end
-     end
-   end
+    
+    begin
+      html = open("http://www.google.com/search?hl=en&q=#{URI.escape msg}&btnI=I%27m+Feeling+Lucky")
+    rescue SocketError, URI::InvalidURIError, OpenURI::HTTPError
+      return "Error when Googling."
+    end
+    
+    page = Hpricot(html)
+    url = html.base_uri
+    begin
+      url = ShortURL.shorten(url, :lns) if url.size > 30
+    rescue
+    end
+    
+    var :url => url
+    var :title => (page/'head/title').inner_text
   end
   alias_command :google, :g
 
@@ -54,12 +42,15 @@ class Controller < Autumn::Leaf
       render :image_help
       return
     end
-
-    search_url = URI.parse("http://images.google.com/images?hl=en&q=#{URI.escape msg}&btnG=Search+Images&gbv=2")
-    response = Net::HTTP.get_response(search_url)
-    urls = response.body.scan(/imgurl\\x3d(.+?)\\x26/).flatten
-   if urls.empty? then return "No images found."
-   else return urls.first end
+    
+    begin
+      html = open("http://images.google.com/images?hl=en&q=#{URI.escape msg}&btnG=Search+Images&gbv=2").read
+    rescue SocketError, URI::InvalidURIError, OpenURI::HTTPError
+      return "Error finding images."
+    end
+    urls = html.scan(/imgurl\\x3d(.+?)\\x26/).flatten
+    if urls.empty? then return "No images found."
+    else return urls.first end
   end
   alias_command :image, :i
   
@@ -69,20 +60,23 @@ class Controller < Autumn::Leaf
   def news_command(stem, sender, reply_to, msg)
     url = "http://news.google.com/news?hl=en&ie=UTF-8&output=atom"
     url << "&q=#{URI.escape msg}" if msg
-    xml = Net::HTTP.get(URI.parse(url))
-    doc = REXML::Document.new(xml)
-
-    stories = doc.root.children.select { |child| child.respond_to?(:name) and child.name == 'entry' }
-    stories.slice! 0, 5
-    story = stories.at_rand
-    return "No news stories found." unless story
-    var :title => @coder.decode(story.elements['title'].text)
-    result_url = story.elements['link'].attributes['href']
-    if result_url.size > 30 then
-      var :url => (ShortURL.shorten(result_url, :lns) rescue result_url)
-    else
-      var :url => result_url
+    begin
+      dom = Hpricot(open(url))
+    rescue SocketError, URI::InvalidURIError, OpenURI::HTTPError
+      return "Error getting the news."
     end
+    
+    stories = (dom/'entry')[0,5]
+    story = stories[rand(5)]
+    return "No news stories found." unless story
+    
+    var :title => (story/'title').inner_text
+    story_url = (story/'link').first['href']
+    begin
+      story_url = ShortURL.shorten(story_url, :lns) if story_url.size > 30
+    rescue
+    end
+    var :url => story_url
   end
   alias_command :news, :n
   
@@ -93,12 +87,13 @@ class Controller < Autumn::Leaf
   def did_receive_channel_message(stem, sender, channel, msg)
     return unless options[:announce_webpage_titles]
     if msg =~ /^http:\/\// then
-      html = Net::HTTP.get(URI.parse(msg)) rescue nil
-      if html then
-        page = Hpricot(html)
-        title = (page/'head/title').try(:inner_html)
-        stem.message title if title
+      begin
+        page = Hpricot(open(msg))
+      rescue SocketError, URI::InvalidURIError, OpenURI::HTTPError
+        return
       end
+      title = (page/'head/title').try(:inner_html)
+      stem.message title if title
     end
   end
 end
