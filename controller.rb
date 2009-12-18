@@ -44,11 +44,11 @@ class Controller < Autumn::Leaf
     end
     
     begin
-      html = open("http://images.google.com/images?hl=en&q=#{URI.escape msg}&btnG=Search+Images&gbv=2").read
+      html = open("http://images.google.com/images?hl=en&q=#{URI.escape msg}").read
     rescue SocketError, URI::InvalidURIError, OpenURI::HTTPError
       return "Error finding images."
     end
-    urls = html.scan(/imgurl\\x3d(.+?)\\x26/).flatten
+    urls = html.scan(/imgurl=(.+?)&imgrefurl=/).flatten.map { |url| URI.decode url }
     if urls.empty? then return "No images found."
     else return urls.first end
   end
